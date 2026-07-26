@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>財務工具箱</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,"Microsoft JhengHei",sans-serif;background:#eef2f7;color:#1a1a1a;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#1a3a5c 0%,#2471a3 100%);color:#fff;padding:40px 24px 32px;text-align:center}
+.hdr h1{font-size:22px;font-weight:bold;letter-spacing:1px;margin-bottom:8px}
+.hdr p{font-size:13px;opacity:.8;line-height:1.6}
+.badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:4px 14px;border-radius:20px;font-size:11px;margin-top:10px}
+.wrap{max-width:600px;margin:0 auto;padding:24px 16px}
+a.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);margin-bottom:16px;overflow:hidden;text-decoration:none;color:inherit;display:block;transition:transform .15s,box-shadow .15s;border:1px solid #dde3eb}
+a.card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.13)}
+a.card:active{transform:translateY(0)}
+.card-top{background:linear-gradient(135deg,#1a3a5c,#2471a3);padding:18px 20px;display:flex;align-items:center;gap:14px}
+.icon{font-size:28px;width:48px;height:48px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-top h2{color:#fff;font-size:16px;font-weight:bold;margin-bottom:3px}
+.card-top p{color:rgba(255,255,255,.75);font-size:12px;line-height:1.4}
+.card-body{padding:14px 20px}
+.tag{display:inline-block;background:#e8f0f8;color:#1a3a5c;font-size:11px;padding:3px 9px;border-radius:10px;margin:3px 3px 3px 0;font-weight:600}
+.arrow{float:right;color:#2471a3;font-size:20px;line-height:1;margin-top:2px}
+.desc{font-size:12px;color:#555;line-height:1.6;margin-bottom:10px}
+.footer{text-align:center;padding:20px;color:#94a3b8;font-size:11px}
+@media(max-width:480px){
+  .hdr{padding:28px 16px 24px}
+  .hdr h1{font-size:18px}
+  .wrap{padding:16px 12px}
+  .card-top{padding:14px 16px;gap:10px}
+  .card-top h2{font-size:14px}
+  .card-top p{font-size:11px}
+  .icon{width:40px;height:40px;font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>📊 財務工具箱</h1>
+  <p>專為財務會計人員設計的線上計算工具<br>手機、平板、電腦皆可使用</p>
+  <div class="badge">免費使用 · 無需安裝 · 即開即用</div>
+</div>
+<div class="wrap">
+
+  <a class="card" href="working_capital.html">
+    <div class="card-top">
+      <div class="icon">💰</div>
+      <div>
+        <h2>營運資金計算器</h2>
+        <p>Working Capital Simulator</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="desc">輸入現金總額（含質押定存扣除、預收貨款抵減），自動計算可動用現金淨額，並即時試算可支撐年營收、CCC 現金轉換週期與各項資金佔用分析。</div>
+      <span class="arrow">›</span>
+      <span class="tag">CCC 分析</span>
+      <span class="tag">DSO / DIO / DPO</span>
+      <span class="tag">質押定存</span>
+      <span class="tag">預收貨款</span>
+      <span class="tag">情境模擬</span>
+    </div>
+  </a>
+
+  <a class="card" href="ifrs15.html">
+    <div class="card-top">
+      <div class="icon">📋</div>
+      <div>
+        <h2>IFRS 15/9 分期付款試算</h2>
+        <p>分期銷貨合規底稿 · 毛利報價工具</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="desc">依 IFRS 15.60–65 重大融資成分規範，自動計算分期付款合約的收益認列、利息收入、成本攤銷與會計分錄，並支援 Excel 匯出。</div>
+      <span class="arrow">›</span>
+      <span class="tag">IFRS 15</span>
+      <span class="tag">IFRS 9</span>
+      <span class="tag">分期付款</span>
+      <span class="tag">融資成分</span>
+      <span class="tag">會計分錄</span>
+      <span class="tag">Excel 匯出</span>
+    </div>
+  </a>
+
+</div>
+<div class="footer">© 財務工具箱 · 僅供參考，不構成專業財務建議</div>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>營運資金計算器</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, "Microsoft JhengHei", sans-serif; background: #F0F4F8; color: #1a1a1a; }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+  h1 { background: #1F4E79; color: #fff; padding: 16px 24px; border-radius: 8px 8px 0 0;
+       font-size: 18px; letter-spacing: 0.5px; }
+  .subtitle { background: #D9E1F2; color: #595959; font-size: 13px; padding: 8px 24px;
+              border-radius: 0; font-style: italic; margin-bottom: 20px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.12); overflow: hidden; }
+  .card-header { background: #1F4E79; color: #fff; font-weight: bold; font-size: 13px;
+                 padding: 10px 16px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 9px 14px; border-bottom: 1px solid #e8e8e8; font-size: 14px; }
+  tr:last-child td { border-bottom: none; }
+
+  .label { color: #333; }
+  .input-cell input {
+    width: 100%; border: 1px solid #aac4e0; border-radius: 4px; padding: 5px 8px;
+    font-size: 16px; color: #0000FF; font-family: Arial, sans-serif; text-align: right;
+    background: #EBF7FF; min-height: 44px;
+  }
+  .input-cell input:focus { outline: 2px solid #1F4E79; border-color: #1F4E79; }
+  .unit { color: #777; font-size: 12px; text-align: center; }
+
+  .sub-note td { background: #F7F9FC; }
+  .sub-note .label { color: #777; font-size: 12px; font-style: italic; }
+  .sub-note .value { font-weight: bold; text-align: right; font-size: 13px; color: #1F4E79; }
+
+  .result-table td { background: #E2EFDA; }
+  .result-table .label { font-weight: normal; }
+  .result-table .value { font-weight: bold; text-align: right; font-size: 14px; }
+  .result-highlight td { background: #C6EFCE !important; font-size: 15px; font-weight: bold; }
+
+  .tip-table td { background: #FFF2CC; }
+  .tip-table .value { font-weight: bold; text-align: right; color: #7B6000; }
+
+  .scenario-table th { background: #D6E4F0; font-weight: bold; text-align: center; font-size: 13px; }
+  .scenario-table td { text-align: right; font-size: 13px; }
+  .scenario-table .col-label { text-align: center; }
+  .scenario-base td { background: #FFF2CC; font-weight: bold; }
+  .scenario-table tr:hover td { background: #EBF3FB; }
+
+  .ccc-badge { display: inline-block; background: #1F4E79; color: #fff;
+               border-radius: 20px; padding: 4px 14px; font-size: 13px; font-weight: bold;
+               margin: 12px 0 4px 14px; }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    .page { padding: 10px 8px; }
+    h1 { font-size: 14px; padding: 12px 14px; }
+    .subtitle { font-size: 11px; padding: 6px 14px; margin-bottom: 10px; }
+    td, th { padding: 8px 8px; font-size: 13px; }
+    .input-cell input { font-size: 16px !important; min-height: 44px; padding: 8px; }
+    .unit { font-size: 11px; min-width: 22px; }
+    .result-table .value { font-size: 13px; }
+    .result-highlight td { font-size: 14px; }
+    .ccc-badge { font-size: 13px; padding: 4px 12px; margin: 10px 0 2px 10px; }
+    .scenario-table th { font-size: 11px; padding: 7px 4px; }
+    .scenario-table td { font-size: 11px; padding: 7px 4px; }
+    .card { margin-bottom: 0; }
+  }
+  @media (max-width: 640px) {
+    .scenario-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>營運資金計算器 ｜ Working Capital Simulator</h1>
+  <div class="subtitle">藍色欄位為輸入區，修改後即時重新計算</div>
+
+  <div class="grid">
+    <!-- 輸入區 -->
+    <div class="card">
+      <div class="card-header">【輸入區】基本假設</div>
+      <table>
+        <tr>
+          <td class="label">現金總額</td>
+          <td class="input-cell"><input type="number" id="cash" value="400000000" step="1000000" inputmode="numeric"></td>
+          <td class="unit">元</td>
+        </tr>
+        <tr>
+          <td class="label">質押定存（不可動用）</td>
+          <td class="input-cell"><input type="number" id="pledged" value="0" step="1000000" inputmode="numeric"></td>
+          <td class="unit">元</td>
+        </tr>
+        <tr>
+          <td class="label">預收貨款（抵減營運資金需求）</td>
+          <td class="input-cell"><input type="number" id="advance" value="0" step="1000000" inputmode="numeric"></td>
+          <td class="unit">元</td>
+        </tr>
+        <tr class="sub-note">
+          <td class="label">→ 可動用現金淨額</td>
+          <td class="value" id="r-netcash">—</td>
+          <td class="unit">元</td>
+        </tr>
+        <tr>
+          <td class="label">毛利率</td>
+          <td class="input-cell"><input type="number" id="gm" value="28" step="0.1" min="0" max="100" inputmode="decimal"></td>
+          <td class="unit">%</td>
+        </tr>
+        <tr>
+          <td class="label">AR 天數（應收）</td>
+          <td class="input-cell"><input type="number" id="dso" value="60" step="1" min="0" inputmode="numeric"></td>
+          <td class="unit">天</td>
+        </tr>
+        <tr>
+          <td class="label">存貨天數（DIO）</td>
+          <td class="input-cell"><input type="number" id="dio" value="236" step="1" min="0" inputmode="numeric"></td>
+          <td class="unit">天</td>
+        </tr>
+        <tr>
+          <td class="label">AP 天數（應付）</td>
+          <td class="input-cell"><input type="number" id="dpo" value="25" step="1" min="0" inputmode="numeric"></td>
+          <td class="unit">天</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 計算結果 -->
+    <div class="card">
+      <div class="card-header">【計算結果】</div>
+      <div id="ccc-badge" class="ccc-badge">CCC: 271 天</div>
+      <table class="result-table">
+        <tr class="result-highlight">
+          <td class="label">可支撐年營收</td>
+          <td class="value" id="r-rev">—</td>
+          <td class="unit">元</td>
+        </tr>
+        <tr>
+          <td class="label">可支撐月均營收</td>
+          <td class="value" id="r-monthly">—</td>
+          <td class="unit">元</td>
+        </tr>
+        <tr>
+          <td class="label">AR 佔用資金</td>
+          <td class="value" id="r-ar">—</td>
+          <td class="unit">元</td>
+        </tr>
+        <tr>
+          <td class="label">存貨佔用資金</td>
+          <td class="value" id="r-inv">—</td>
+          <td class="unit">元</td>
+        </tr>
+        <tr>
+          <td class="label">AP 釋放資金</td>
+          <td class="value" id="r-ap">—</td>
+          <td class="unit">元</td>
+        </tr>
+        <tr>
+          <td class="label">淨營運資金需求</td>
+          <td class="value" id="r-nwc">—</td>
+          <td class="unit">元</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 改善建議 -->
+  <div class="card" style="margin-top:20px">
+    <div class="card-header">【改善建議】調整一個變數可增加的年營收</div>
+    <table class="tip-table">
+      <tr>
+        <td class="label">存貨天數 ↓30天（壓庫存）</td>
+        <td class="value" id="t-inv">—</td>
+        <td class="unit">元</td>
+      </tr>
+      <tr>
+        <td class="label">AP 天數 ↑20天（延長付款）</td>
+        <td class="value" id="t-ap">—</td>
+        <td class="unit">元</td>
+      </tr>
+      <tr>
+        <td class="label">AR 天數 ↓15天（加速收款）</td>
+        <td class="value" id="t-ar">—</td>
+        <td class="unit">元</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 存貨情境分析 -->
+  <div class="card" style="margin-top:20px">
+    <div class="card-header">【情境分析】存貨天數對可支撐年營收的影響</div>
+    <table class="scenario-table">
+      <thead>
+        <tr>
+          <th>存貨天數</th>
+          <th>可支撐年營收（元）</th>
+          <th>vs 當前基準</th>
+        </tr>
+      </thead>
+      <tbody id="scenario-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const fmt = n => Math.round(n).toLocaleString('zh-TW');
+const fmtDiff = n => (n >= 0 ? '+' : '') + fmt(n);
+
+function calcRev(netCash, gm, dso, dio, dpo) {
+  const cogs = 1 - gm;
+  const denom = (dso + dio * cogs - dpo * cogs) / 365;
+  if (denom <= 0) return Infinity;
+  return netCash / denom;
+}
+
+function update() {
+  const cash    = +document.getElementById('cash').value || 0;
+  const pledged = +document.getElementById('pledged').value || 0;
+  const advance = +document.getElementById('advance').value || 0;
+  const gm      = (+document.getElementById('gm').value || 0) / 100;
+  const dso     = +document.getElementById('dso').value || 0;
+  const dio     = +document.getElementById('dio').value || 0;
+  const dpo     = +document.getElementById('dpo').value || 0;
+
+  const netCash = Math.max(0, cash - pledged + advance);
+  document.getElementById('r-netcash').textContent = fmt(netCash);
+
+  const ccc = dso + dio - dpo;
+  document.getElementById('ccc-badge').textContent = `CCC: ${ccc} 天`;
+
+  const rev = calcRev(netCash, gm, dso, dio, dpo);
+  const arFund  = rev * dso / 365;
+  const invFund = rev * (1 - gm) * dio / 365;
+  const apFund  = rev * (1 - gm) * dpo / 365;
+  const nwc     = arFund + invFund - apFund;
+
+  document.getElementById('r-rev').textContent     = fmt(rev);
+  document.getElementById('r-monthly').textContent = fmt(rev / 12);
+  document.getElementById('r-ar').textContent      = fmt(arFund);
+  document.getElementById('r-inv').textContent     = fmt(invFund);
+  document.getElementById('r-ap').textContent      = fmt(apFund);
+  document.getElementById('r-nwc').textContent     = fmt(nwc);
+
+  // 改善建議
+  const r1 = calcRev(netCash, gm, dso, Math.max(0, dio - 30), dpo);
+  const r2 = calcRev(netCash, gm, dso, dio, dpo + 20);
+  const r3 = calcRev(netCash, gm, Math.max(0, dso - 15), dio, dpo);
+  document.getElementById('t-inv').textContent = fmtDiff(r1 - rev);
+  document.getElementById('t-ap').textContent  = fmtDiff(r2 - rev);
+  document.getElementById('t-ar').textContent  = fmtDiff(r3 - rev);
+
+  // 情境分析
+  const scenarios = [60, 90, 120, 150, 180, 210, 236, 270, 300, 365];
+  const tbody = document.getElementById('scenario-body');
+  tbody.innerHTML = '';
+  scenarios.forEach(s => {
+    const sr = calcRev(netCash, gm, dso, s, dpo);
+    const diff = sr - rev;
+    const isBase = s === dio;
+    const tr = document.createElement('tr');
+    if (isBase) tr.className = 'scenario-base';
+    tr.innerHTML = `
+      <td class="col-label">${s} 天${isBase ? ' ◀ 當前' : ''}</td>
+      <td>${fmt(sr)}</td>
+      <td>${isBase ? '—' : fmtDiff(diff)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+['cash','pledged','advance','gm','dso','dio','dpo'].forEach(id =>
+  document.getElementById(id).addEventListener('input', update));
+
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>IFRS 15/9 分期付款銷貨合規底稿 — 毛利報價試算工具</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Arial',sans-serif;background:#eef2f7;color:#2c3e50;font-size:13px;padding-bottom:70px}
+.hdr{background:linear-gradient(135deg,#1a3a5c 0%,#2471a3 100%);color:white;padding:18px 32px;display:flex;align-items:center;justify-content:space-between}
+.hdr h1{font-size:18px;font-weight:bold}
+.hdr .sub{font-size:11px;opacity:.8;margin-top:2px}
+.hdr .badge{background:rgba(255,255,255,.18);padding:5px 13px;border-radius:14px;font-size:11px;white-space:nowrap}
+.wrap{max-width:1260px;margin:0 auto;padding:18px}
+.card{background:white;border-radius:8px;padding:18px 22px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);border:1px solid #dde3eb}
+.ctitle{font-size:14px;font-weight:bold;color:#1a3a5c;margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid #dde3eb;display:flex;align-items:center;gap:8px}
+.num{background:#1a3a5c;color:white;width:21px;height:21px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.fg{margin-bottom:11px}
+.fg label{display:block;font-size:11px;font-weight:600;color:#4a5568;margin-bottom:3px}
+.fg .hint{font-size:10px;color:#a0aec0;margin-top:2px}
+.iw{display:flex;align-items:stretch}
+.iw .pre,.iw .suf{background:#f5f7fa;border:1px solid #d1d5db;padding:6px 9px;font-size:12px;color:#718096;white-space:nowrap}
+.iw .pre{border-right:none;border-radius:4px 0 0 4px}
+.iw .suf{border-left:none;border-radius:0 4px 4px 0}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;color:#0000cd;background:#fafbff;transition:border-color .2s}
+input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,select:focus{border-color:#2471a3;outline:none;box-shadow:0 0 0 2px rgba(36,113,163,.12)}
+.iw input{border-radius:0;flex:1;min-width:0}
+.yin{background:#fffde7!important;border-color:#f0c040!important}
+
+/* COST TABLE */
+.ctbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.ctbl th{background:#1a3a5c;color:white;padding:8px 10px;text-align:center;font-size:11px;font-weight:600;white-space:nowrap}
+.ctbl td{padding:6px 8px;border-bottom:1px solid #e8ecf2;vertical-align:middle}
+.ctbl .r{text-align:right}
+.ctbl .c{text-align:center}
+.ctbl tr.item td:first-child{font-weight:600;color:#1a3a5c}
+.ctbl tr.sub td:first-child{color:#5d6d7e;padding-left:18px;font-size:11px;font-style:italic}
+.ctbl tr.auto-row td{background:#f0f9ff}
+.ctbl tr.note-row td{background:#fffbeb;font-size:11px;color:#92400e;padding:8px 10px}
+.ctbl tr.total-row td{background:#e8f0f8!important;font-weight:bold;font-size:13px;color:#1a3a5c;border-top:2px solid #1a3a5c}
+.ctbl input{padding:5px 7px;font-size:12px;background:#fffde7;border:1px solid #f0c040;border-radius:3px;width:100%;color:#0000cd}
+.ctbl .auto-val{color:#000000;font-weight:600}
+.ctbl select{padding:5px 7px;font-size:12px;background:#fffde7;border:1px solid #f0c040;border-radius:3px;width:100%;color:#0000cd}
+.rate-in{width:52px!important;display:inline-block!important;margin:0 2px!important}
+.base-in{width:130px!important;display:inline-block!important;margin:0 3px!important}
+
+/* Legend */
+.legend{display:flex;gap:16px;align-items:center;background:#f8fafc;border:1px solid #dde3eb;border-radius:6px;padding:8px 14px;margin-bottom:12px;font-size:11px}
+.leg{display:flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* Radio */
+.radio-row{display:flex;gap:10px;flex-wrap:wrap}
+.rb{display:flex;align-items:center;gap:5px;cursor:pointer;padding:6px 13px;border:2px solid #dde3eb;border-radius:5px;transition:all .2s;font-size:12px}
+.rb:hover{border-color:#2471a3}
+.rb.active{border-color:#2471a3;background:#ebf5fb;color:#1a3a5c;font-weight:600}
+.rb input{display:none}
+.btn{padding:8px 20px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn-p{background:#1a3a5c;color:white}.btn-p:hover{background:#154360}
+.btn-g{background:#1e8449;color:white}.btn-g:hover{background:#196f3d}
+.btn-o{background:transparent;border:2px solid #1a3a5c;color:#1a3a5c}.btn-o:hover{background:#1a3a5c;color:white}
+.btn-sm{padding:4px 11px;font-size:11px}
+.results{display:none}.results.on{display:block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}
+.stat{background:#f5f7fa;border-radius:6px;padding:11px 13px;border-left:3px solid #2471a3}
+.stat .lbl{font-size:10px;color:#718096;margin-bottom:2px}
+.stat .val{font-size:16px;font-weight:bold;color:#1a3a5c}
+.stat .sub{font-size:10px;color:#a0aec0}
+table.rt{width:100%;border-collapse:collapse;font-size:12px}
+table.rt th{background:#1a3a5c;color:white;padding:8px 10px;text-align:center;font-size:11px;font-weight:600;white-space:nowrap}
+table.rt td{padding:7px 10px;border-bottom:1px solid #e8ecf2;text-align:right;vertical-align:middle}
+table.rt tr:nth-child(even) td{background:#f8fafc}
+table.rt tr:hover td{background:#ebf5fb}
+table.rt td.c{text-align:center}
+table.rt td.l{text-align:left}
+.qt .mg{background:#1a3a5c!important;color:white!important;font-size:14px!important;font-weight:bold!important;text-align:center!important;cursor:pointer}
+.qt tr.sel td{background:#e8f4f8!important;border-left:3px solid #2471a3}
+.qt tr.sel .mg{background:#154360!important}
+.ifrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #dde3eb;font-size:12px}
+.ifrow:last-child{border:none}.ifrow .k{color:#4a5568}.ifrow .v{font-weight:600;color:#1a3a5c}
+.badge-g{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:12px;background:#d5f5e3;color:#1e8449;font-weight:600;font-size:11px}
+.badge-o{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:12px;background:#fef9e7;color:#c0392b;font-weight:600;font-size:11px;border:1px solid #f39c12}
+.col-hd{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.col-hd:hover{opacity:.8}
+.arr{transition:transform .3s;font-size:12px}.arr.open{transform:rotate(180deg)}
+.col-body{display:none;margin-top:12px}.col-body.open{display:block}
+.note{background:#fefce8;border-left:3px solid #f59e0b;padding:9px 12px;border-radius:0 5px 5px 0;font-size:11px;color:#92400e;margin:8px 0}
+.note strong{color:#d97706}
+.ref{font-size:10px;color:#94a3b8;font-style:italic;margin-top:6px}
+.stabs{display:flex;gap:0;border-bottom:2px solid #dde3eb;margin-bottom:12px}
+.stab{padding:6px 14px;cursor:pointer;font-size:11px;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap}
+.stab:hover{color:#1a3a5c}.stab.active{border-bottom-color:#1a3a5c;color:#1a3a5c;font-weight:bold}
+.prev{background:#f0f9ff;border:1px dashed #7ec8e3;border-radius:5px;padding:9px 12px;margin-top:9px;font-size:11px;color:#0369a1}
+.prev .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.chip{background:#0369a1;color:white;padding:2px 8px;border-radius:9px;font-size:10px}
+.add-btn{width:100%;border:1.5px dashed #2471a3;background:none;color:#2471a3;padding:5px;border-radius:3px;cursor:pointer;font-size:11px;margin-top:5px}
+.del-btn{background:none;border:none;color:#e74c3c;cursor:pointer;font-size:14px;padding:0 2px}
+.abar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #dde3eb;padding:10px 22px;display:flex;gap:10px;align-items:center;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.08)}
+.jt .dr{color:#1a3a5c;font-weight:600}.jt .cr{color:#7b241c;font-weight:600;padding-left:16px}
+tfoot tr td{background:#1a3a5c!important;color:white!important;font-weight:bold}
+.err{color:#e74c3c;font-size:11px;margin-left:8px}
+.cost-pill{display:inline-block;background:#1a3a5c;color:white;padding:3px 12px;border-radius:11px;font-size:11px;font-weight:bold;margin-left:10px}
+@media print{.abar{display:none}body{background:white;padding:0}.card{box-shadow:none;page-break-inside:avoid}}
+
+/* ── 手機版 ─────────────────────────────────── */
+@media(max-width:768px){
+  body{font-size:14px;padding-bottom:100px}
+  .hdr{padding:12px 14px;flex-direction:column;align-items:flex-start;gap:6px}
+  .hdr h1{font-size:14px;line-height:1.4}
+  .hdr .sub{font-size:10px;line-height:1.5}
+  .hdr .badge{font-size:10px;padding:3px 9px;margin-top:2px}
+  .wrap{padding:8px}
+  .card{padding:12px 10px;margin-bottom:10px}
+  .ctitle{font-size:13px;margin-bottom:10px}
+  .g2,.g3{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .stat{padding:9px 10px}
+  .stat .val{font-size:13px}
+  .stat .lbl{font-size:10px}
+  .fg{margin-bottom:12px}
+  .fg label{font-size:12px;margin-bottom:5px}
+  input[type=text],input[type=number],input[type=date],select{font-size:16px!important;padding:10px;min-height:44px}
+  .iw .pre,.iw .suf{padding:10px 9px;font-size:13px;min-height:44px;display:flex;align-items:center}
+  .hint{font-size:10px}
+  .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #dde3eb;border-radius:6px}
+  .tbl-scroll::after{content:'← 左右滑動查看全欄 →';display:block;text-align:center;font-size:10px;color:#94a3b8;padding:3px;background:#f8fafc;border-top:1px solid #dde3eb}
+  .ctbl{min-width:680px}
+  .ctbl th,.ctbl td{padding:8px 6px;font-size:12px}
+  .ctbl input,.ctbl select{font-size:16px!important;padding:8px 6px;min-height:44px}
+  .rate-in{width:52px!important}
+  .base-in{width:100px!important}
+  .periodic-row td{padding:5px 4px}
+  .periodic-row .p-yr{width:18px;height:18px;margin:2px}
+  .radio-row{flex-direction:column;gap:8px}
+  .rb{padding:12px 14px;font-size:13px}
+  .btn-p{width:100%;padding:14px;font-size:15px;justify-content:center;min-height:50px;margin-bottom:4px}
+  .btn-o.btn-sm{padding:10px 16px;font-size:13px}
+  .abar{padding:8px 10px;gap:6px;flex-wrap:wrap}
+  .abar .btn{flex:1 1 120px;justify-content:center;padding:12px 6px;font-size:12px;min-height:46px}
+  .abar span{display:none}
+  table.rt th,table.rt td{padding:6px 5px;font-size:11px}
+  table.rt th{white-space:normal;line-height:1.3;font-size:10px}
+  .stabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .stab{padding:8px 10px;font-size:11px;white-space:nowrap}
+  .ifrow{flex-direction:column;align-items:flex-start;gap:2px;padding:7px 0;font-size:12px}
+  .badge-g,.badge-o{font-size:11px;padding:5px 10px;line-height:1.5}
+  .note{font-size:11px;padding:8px 10px;line-height:1.5}
+  .ref{font-size:10px}
+  .legend{flex-wrap:wrap;gap:6px;font-size:10px;padding:7px 10px}
+  #sec-cu .ctbl{min-width:0}
+  #sec-cu .ctbl input{min-height:44px;font-size:16px!important}
+  .prev{font-size:11px}
+  .chip{font-size:10px;padding:3px 8px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <h1>📊 IFRS 15/9 分期付款銷貨合規底稿 — 毛利報價試算工具</h1>
+    <div class="sub">黃底藍字 = 人工輸入（唯一需填欄位）｜其餘各欄全部自動計算｜依據 IFRS 15.60–65 重大融資成分調整</div>
+  </div>
+  <div class="badge">IFRS 15 / IAS 9 合規</div>
+</div>
+
+<div class="wrap">
+
+<div class="legend">
+  <strong>欄位說明：</strong>
+  <div class="leg"><div class="dot" style="background:#f0c040;border:1px solid #d97706"></div><span><strong>黃底藍字</strong> = 人工輸入（唯一需填）</span></div>
+  <div class="leg"><div class="dot" style="background:#000"></div><span><strong>黑字白底</strong> = 自動計算（公式）</span></div>
+  <div class="leg"><div class="dot" style="background:#0369a1"></div><span><strong>藍底</strong> = 自動連動</span></div>
+</div>
+
+<!-- CARD 1 -->
+<div class="card">
+  <div class="ctitle"><span class="num">1</span>合約基本資訊<span id="cost-pill" class="cost-pill" style="display:none"></span></div>
+  <div class="g2">
+    <div>
+      <div class="fg"><label>商品 / 專案名稱</label><input type="text" id="projName" placeholder="例：XX設備採購暨維護服務案" class="yin"/></div>
+      <div class="fg"><label>客戶名稱 / 信用備註</label><input type="text" id="custNote" placeholder="例：客戶ABC，AA信評" class="yin"/></div>
+      <div class="fg">
+        <label>市場折現率 / 客戶增量借款利率 *</label>
+        <div class="iw"><input type="number" id="rate" value="3.0" inputmode="decimal" min="0" max="30" step="0.1" class="yin" style="border-radius:4px 0 0 4px" oninput="updCost()"/><div class="suf">% / 年</div></div>
+        <div class="hint">IFRS 15.64：合約起始日之市場利率或客戶增量借款利率</div>
+      </div>
+    </div>
+    <div>
+      <div class="fg"><label>合約日期</label><input type="date" id="contDate" class="yin"/></div>
+      <div class="fg"><label>移轉控制權日期（交付日）</label><input type="date" id="delivDate" class="yin"/><div class="hint">IFRS 15：收入於履約義務滿足時點認列</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD 2: Cost Breakdown -->
+<div class="card">
+  <div class="ctitle"><span class="num">2</span>成本明細（未稅）— 每次新案僅填此區</div>
+  <div class="tbl-scroll">
+  <table class="ctbl">
+    <thead>
+      <tr>
+        <th style="width:30%;text-align:left">成本項目</th>
+        <th style="width:9%">數量</th>
+        <th style="width:7%">單位</th>
+        <th style="width:18%">單價（未稅）NT$</th>
+        <th style="width:18%">小計（未稅）NT$</th>
+        <th style="width:18%">備註</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="item">
+        <td>硬體設備（純硬體）</td>
+        <td><input type="number" id="hw-qty" value="1" min="0" oninput="updCost()"/></td>
+        <td><select id="hw-unit" oninput="updCost()"><option>式</option><option>台</option><option>套</option><option>組</option></select></td>
+        <td><input type="number" id="hw-price" value="0" min="0" step="1000" oninput="updCost()"/></td>
+        <td class="r auto-val" id="hw-sub">-</td>
+        <td><input type="text" id="hw-note" placeholder="品牌/型號"/></td>
+      </tr>
+      <tr class="item">
+        <td>硬體維修加成<br><span style="font-weight:400;font-size:10px;color:#718096">（維修契約費用／報價成本，手動輸入）</span></td>
+        <td><input type="number" id="hwm-qty" value="1" min="0" oninput="updCost()"/></td>
+        <td>式</td>
+        <td><input type="number" id="hwm-price" value="0" min="0" step="1000" oninput="updCost()"/></td>
+        <td class="r auto-val" id="hwm-sub">-</td>
+        <td style="font-size:10px;color:#718096">維修契約報價金額（人工填入）</td>
+      </tr>
+      <tr class="sub">
+        <td>└ 維修費用負擔方式</td>
+        <td colspan="2"><select id="maint-bearing" oninput="updCost()" style="width:100%"><option value="self">我司負擔</option><option value="supplier">轉嫁供應商</option></select></td>
+        <td colspan="2" style="color:#718096;font-size:10px">我司負擔 → 機器設備維修成本納入成本合計</td>
+        <td></td>
+      </tr>
+      <tr class="sub auto-row">
+        <td>└ 機器設備維修成本（自動計算）</td>
+        <td class="c" style="color:#000">1</td>
+        <td class="c" style="color:#000">式</td>
+        <td class="r auto-val" id="maint-uprice">-</td>
+        <td class="r auto-val" id="maint-sub">-</td>
+        <td style="font-size:10px;color:#2471a3">= 基準值 × 各年維修率（PV折現）</td>
+      </tr>
+      <tr class="note-row">
+        <td colspan="6">
+          <span style="font-weight:700;color:#92400e;margin-right:6px">維修率設定：</span>
+          基準值 NT$<input type="number" id="maint-base" value="0" min="0" step="1000" oninput="updCost()" class="base-in"/>
+          ｜第2年<input type="number" id="mr2" value="5" min="0" max="100" oninput="updCost()" class="rate-in"/>%
+          第3年<input type="number" id="mr3" value="5" min="0" max="100" oninput="updCost()" class="rate-in"/>%
+          第4年<input type="number" id="mr4" value="50" min="0" max="100" oninput="updCost()" class="rate-in"/>%
+          第5年<input type="number" id="mr5" value="5" min="0" max="100" oninput="updCost()" class="rate-in"/>%
+          ｜合計維修率：<strong id="total-rate">65%</strong>
+          ｜折現後維修成本：<strong id="maint-pv" class="auto-val">NT$ -</strong>
+          （以 <span id="rate-show">3.0</span>% 折現）
+        </td>
+      </tr>
+      <tr class="item">
+        <td>軟體採購 / 授權費</td>
+        <td><input type="number" id="sw-qty" value="1" min="0" oninput="updCost()"/></td>
+        <td><select id="sw-unit" oninput="updCost()"><option>式</option><option>套</option><option>授權</option></select></td>
+        <td><input type="number" id="sw-price" value="0" min="0" step="1000" oninput="updCost()"/></td>
+        <td class="r auto-val" id="sw-sub">-</td>
+        <td><input type="text" id="sw-note" placeholder="軟體名稱 / 授權方式"/></td>
+      </tr>
+      <tr class="item">
+        <td>開發人力（客製軟體）</td>
+        <td><input type="number" id="dev-qty" value="0" min="0" oninput="updCost()"/></td>
+        <td style="text-align:center;color:#000">人天</td>
+        <td><input type="number" id="dev-price" value="6000" min="0" step="500" oninput="updCost()"/></td>
+        <td class="r auto-val" id="dev-sub">-</td>
+        <td><input type="text" placeholder="開發項目描述"/></td>
+      </tr>
+      <tr class="item">
+        <td>服務人力</td>
+        <td><input type="number" id="svc-qty" value="0" min="0" oninput="updCost()"/></td>
+        <td style="text-align:center;color:#000">人天</td>
+        <td><input type="number" id="svc-price" value="6000" min="0" step="500" oninput="updCost()"/></td>
+        <td class="r auto-val" id="svc-sub">-</td>
+        <td></td>
+      </tr>
+      <tr class="item">
+        <td>出差費用</td>
+        <td colspan="3"></td>
+        <td><input type="number" id="travel" value="0" min="0" step="1000" oninput="updCost()"/></td>
+        <td></td>
+      </tr>
+      <tr class="item">
+        <td>安裝施工費用</td>
+        <td><input type="number" id="inst-qty" value="1" min="0" oninput="updCost()"/></td>
+        <td style="text-align:center;color:#000">式</td>
+        <td><input type="number" id="inst-price" value="0" min="0" step="1000" oninput="updCost()"/></td>
+        <td class="r auto-val" id="inst-sub">-</td>
+        <td></td>
+      </tr>
+      <tr class="item">
+        <td>施工耗材費用</td>
+        <td><input type="number" id="mat-qty" value="1" min="0" oninput="updCost()"/></td>
+        <td style="text-align:center;color:#000">式</td>
+        <td><input type="number" id="mat-price" value="0" min="0" step="1000" oninput="updCost()"/></td>
+        <td class="r auto-val" id="mat-sub">-</td>
+        <td></td>
+      </tr>
+      <!-- ── 逐期成本區塊 ────────────────────────────────────── -->
+      <tr style="background:#eff6ff;border-top:2px dashed #93c5fd">
+        <td colspan="5" style="padding:6px 10px;font-weight:700;color:#1e40af;font-size:12px">
+          ⟳ 逐期成本（平台訂閱 / 年度維護費 / 逐期人力等）
+          <span style="font-weight:400;font-size:10px;color:#6b7280">— 各期金額依付款時點自動折現為現值（PV）後計入成本</span>
+        </td>
+        <td style="background:#eff6ff;text-align:right;padding:4px 8px">
+          <button onclick="addPeriodicRow()" style="background:#1d4ed8;color:#fff;border:none;border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;font-weight:600">＋ 新增逐期成本</button>
+        </td>
+      </tr>
+      <tr id="periodic-hdr" style="display:none;background:#dbeafe">
+        <td style="font-size:10px;color:#1e40af;font-weight:600;padding:3px 8px">項目名稱</td>
+        <td style="font-size:10px;color:#1e40af;font-weight:600;text-align:center">付款頻率</td>
+        <td style="font-size:10px;color:#1e40af;font-weight:600;text-align:center">每期金額</td>
+        <td style="font-size:10px;color:#1e40af;font-weight:600;text-align:right;padding-right:8px">每期NT$</td>
+        <td style="font-size:10px;color:#1e40af;font-weight:600;text-align:right;padding-right:8px">PV現值小計</td>
+        <td style="font-size:10px;color:#1e40af;font-weight:600;text-align:center">付費年度</td>
+      </tr>
+      <!-- periodic rows injected here -->
+      <tr id="periodic-anchor" style="display:none"></tr>
+      <tr id="periodic-sum-row" style="display:none;background:#dbeafe">
+        <td colspan="4" style="text-align:right;font-size:12px;color:#1e40af;font-weight:700;padding:4px 8px">逐期成本 PV 合計</td>
+        <td class="r" id="periodic-total" style="color:#1e40af;font-weight:700;font-size:13px">-</td>
+        <td style="background:#dbeafe"></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr class="total-row">
+        <td colspan="4" style="text-align:right;background:#e8f0f8;color:#1a3a5c;border-top:2px solid #1a3a5c;font-weight:bold;font-size:13px">成本合計（未稅）</td>
+        <td class="r" id="cost-total" style="background:#e8f0f8;color:#1a3a5c;border-top:2px solid #1a3a5c;font-weight:bold;font-size:14px">-</td>
+        <td style="background:#e8f0f8;border-top:2px solid #1a3a5c"></td>
+      </tr>
+    </tfoot>
+  </table>
+  </div><!-- /tbl-scroll -->
+</div>
+
+<!-- CARD 3: IFRS Conditions -->
+<div class="card">
+  <div class="ctitle col-hd" onclick="tog('jc-b','jc-a')"><span><span class="num">3</span>IFRS 15 判斷條件核對清單</span><span class="arr" id="jc-a">▼</span></div>
+  <div class="col-body" id="jc-b">
+    <div class="g2">
+      <div>
+        <div class="fg"><label>付款條件是否顯著延遲（超過正常信用期）?</label>
+          <select id="jc1" class="yin"><option value="Y">是 — 客戶延後付款</option><option value="N" selected>否 — 符合一般信用條件</option></select></div>
+        <div class="fg"><label>合約利率與市場利率差距顯著?</label>
+          <select id="jc3" class="yin"><option value="Y">是（差距 &gt; 2%）— 需評估融資成分</option><option value="N" selected>否（差距 ≤ 2%）</option></select></div>
+        <div class="fg"><label>履約義務認列類型</label>
+          <select id="jc4" class="yin"><option value="point" selected>時間點認列（交付商品控制權時）</option><option value="period">一段期間認列（服務型合約）</option></select></div>
+      </div>
+      <div>
+        <div class="fg"><label>是否存在重大預付款?</label>
+          <select id="jc5" class="yin"><option value="N" selected>否</option><option value="Y">是（客戶預付，賣方提供融資）</option></select></div>
+        <div class="fg"><label>IFRS 15.63(b)：合約利率是否接近市場利率?</label>
+          <select id="jc6" class="yin"><option value="N" selected>否 — 需按市場利率調整</option><option value="Y">是 — 融資成分不重大</option></select></div>
+      </div>
+    </div>
+    <div class="ref">IFRS 15.60–65（融資成分）｜IFRS 15.63（實務方便）｜IAS 32（金融工具）</div>
+  </div>
+</div>
+
+<!-- CARD 4: Payment -->
+<div class="card">
+  <div class="ctitle"><span class="num">4</span>付款結構設定</div>
+  <div class="fg">
+    <label>付款方式</label>
+    <div class="radio-row">
+      <label class="rb active" id="rb-eq" onclick="switchPT('equal')"><input type="radio" name="pt" value="equal" checked> ⓔ 等額分期付款</label>
+      <label class="rb" id="rb-cu" onclick="switchPT('custom')"><input type="radio" name="pt" value="custom"> ⓒ 自訂各期金額</label>
+    </div>
+  </div>
+  <div id="sec-eq">
+    <div class="g3">
+      <div class="fg"><label>分期期數 *</label><div class="iw"><input type="number" id="periods" value="12" min="1" inputmode="numeric" max="120" oninput="updPrev()" class="yin"/><div class="suf">期</div></div></div>
+      <div class="fg"><label>首期付款（移轉後第幾月）*</label><div class="iw"><input type="number" id="fm" value="1" min="0" max="120" inputmode="numeric" oninput="updPrev()" class="yin"/><div class="suf">月</div></div><div class="hint">0 = 交付當月收取</div></div>
+      <div class="fg"><label>付款間隔 *</label><div class="iw"><input type="number" id="intv" value="1" min="1" max="12" inputmode="numeric" oninput="updPrev()" class="yin"/><div class="suf">月</div></div></div>
+    </div>
+    <div class="prev" id="prev-box"><strong id="prev-title">📅 付款時間預覽：</strong><div class="chips" id="prev-chips"></div></div>
+  </div>
+  <div id="sec-cu" style="display:none">
+    <div class="note"><strong>說明：</strong>自訂模式下，報價試算表將依此付款時點結構，按比例換算各毛利率所需之各期金額。</div>
+    <table class="ctbl" style="margin-top:8px">
+      <thead><tr><th style="width:50px">期別</th><th>付款月份（移轉後第幾月）</th><th>付款金額（NT$）</th><th style="width:36px"></th></tr></thead>
+      <tbody id="cu-tbody">
+        <tr><td class="c">1</td><td><input type="number" class="cm" value="3" min="0"/></td><td><input type="number" class="ca" value="300000" min="0" step="1000"/></td><td><button class="del-btn" onclick="delRow(this)">✕</button></td></tr>
+        <tr><td class="c">2</td><td><input type="number" class="cm" value="6" min="0"/></td><td><input type="number" class="ca" value="300000" min="0" step="1000"/></td><td><button class="del-btn" onclick="delRow(this)">✕</button></td></tr>
+        <tr><td class="c">3</td><td><input type="number" class="cm" value="12" min="0"/></td><td><input type="number" class="ca" value="400000" min="0" step="1000"/></td><td><button class="del-btn" onclick="delRow(this)">✕</button></td></tr>
+      </tbody>
+    </table>
+    <button class="add-btn" onclick="addRow()">＋ 新增付款期</button>
+  </div>
+  <div style="margin-top:14px;display:flex;align-items:center;flex-wrap:wrap;gap:10px">
+    <button class="btn btn-p" onclick="calc()">▶ 立即計算報價</button>
+    <button class="btn btn-o btn-sm" onclick="resetAll()">↺ 重設</button>
+    <span class="err" id="calc-err"></span>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+
+<div class="card">
+  <div class="ctitle"><span class="num">5</span>IFRS 15 合規分析結果</div>
+  <div id="ifrs-out"></div>
+</div>
+
+<div class="card">
+  <div class="ctitle"><span class="num">6</span>毛利報價試算表</div>
+  <div class="note" style="margin-bottom:10px">
+    <strong>使用說明：</strong>各毛利率之「各期分期金額」係以使 PV = 目標現金售價所反推之等額付款金額。
+    <strong>合約名目金額 = 分期付款總額；IFRS 15 收入認列 = 現值（現金售價）；</strong>差額為<strong>利息收入（IFRS 15.65，不計入營業收入）。</strong>
+    點擊任一列可查看該方案完整攤銷表。
+  </div>
+  <div style="overflow-x:auto">
+    <table class="rt qt" id="qt">
+      <thead><tr>
+        <th style="width:65px">目標<br>毛利率</th>
+        <th>商品成本<br>（未稅）</th>
+        <th>現金售價<br>= IFRS 15 收入認列</th>
+        <th>毛利額</th>
+        <th>毛利率<br>驗算</th>
+        <th>各期分期金額<br>（NT$/期）</th>
+        <th>分期付款總額<br>（合約名目）</th>
+        <th>其中：<br>利息收入<br>（遞延融資）</th>
+        <th>月利率</th>
+      </tr></thead>
+      <tbody id="qt-body"></tbody>
+    </table>
+  </div>
+  <div class="note" style="margin-top:10px">
+    <strong>IFRS 15.65：</strong>利息收入應與合約收入<strong>分開列報</strong>，不得併入營業收入。建議使用「遞延融資收入」（負債）逐期攤銷轉入「利息收入」（非營業收入）。
+  </div>
+</div>
+
+<div class="card">
+  <div class="ctitle col-hd" onclick="tog('ab','aa')"><span><span class="num">7</span>利息收入攤銷表（有效利率法）</span><span class="arr" id="aa">▼</span></div>
+  <div class="col-body" id="ab">
+    <div class="stabs" id="amort-tabs"></div>
+    <div id="sc-lbl" style="font-size:11px;color:#4a5568;margin-bottom:8px"></div>
+    <div style="overflow-x:auto">
+      <table class="rt">
+        <thead><tr><th>期別</th><th>付款月份</th><th>期初應收帳款</th><th>利息收入<br>（有效利率法）</th><th>收取款項</th><th>期末應收帳款</th></tr></thead>
+        <tbody id="amort-tbody"></tbody>
+        <tfoot id="amort-tfoot"></tfoot>
+      </table>
+    </div>
+    <div style="margin-top:14px">
+      <div style="font-size:12px;font-weight:bold;color:#1a3a5c;margin-bottom:7px">📒 建議會計分錄</div>
+      <table class="rt jt">
+        <thead><tr><th>日期</th><th>會計科目</th><th>借方 (NT$)</th><th>貸方 (NT$)</th><th style="width:200px">說明</th></tr></thead>
+        <tbody id="jt-body"></tbody>
+      </table>
+    </div>
+    <div class="ref">有效利率法：各期利息 = 期初帳面 × [(1+月利率)^期間月數 − 1]｜IFRS 15.65、IFRS 9</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ctitle col-hd" onclick="tog('sb','sa')"><span><span class="num">8</span>IFRS 15 判斷結論摘要</span><span class="arr" id="sa">▼</span></div>
+  <div class="col-body" id="sb"><div id="sum-out"></div></div>
+</div>
+
+</div><!-- /results -->
+</div><!-- /wrap -->
+
+<div class="abar">
+  <button class="btn btn-g" onclick="expXlsx()">📥 下載 Excel 試算表（含攤銷表）</button>
+  <button class="btn btn-o" onclick="window.print()">🖨 列印</button>
+  <span style="font-size:10px;color:#94a3b8;margin-left:auto;max-width:480px">本工具依 IFRS 15《客戶合約收入》設計，計算結果供業務報價參考。實際合規判斷請洽財務/會計部門確認。</span>
+</div>
+
+<script>
+const NT=n=>isNaN(n)||n==null?'-':'NT$'+Math.round(n).toLocaleString('zh-TW');
+const fmtN=n=>Math.round(n||0).toLocaleString('zh-TW');
+
+function calcMaintPV(){
+  const base=parseFloat(document.getElementById('maint-base').value)||0;
+  const ar=parseFloat(document.getElementById('rate').value)/100||0.03;
+  const r2=parseFloat(document.getElementById('mr2').value)/100||0;
+  const r3=parseFloat(document.getElementById('mr3').value)/100||0;
+  const r4=parseFloat(document.getElementById('mr4').value)/100||0;
+  const r5=parseFloat(document.getElementById('mr5').value)/100||0;
+  if(document.getElementById('maint-bearing').value==='supplier')return 0;
+  return base*(r2/Math.pow(1+ar,2)+r3/Math.pow(1+ar,3)+r4/Math.pow(1+ar,4)+r5/Math.pow(1+ar,5));
+}
+
+// ── 逐期成本 PV ─────────────────────────────────────────────
+function calcPeriodicPV(){
+  const ar=parseFloat(document.getElementById('rate').value)/100||0.03;
+  const mr=ar/12;
+  let total=0;
+  document.querySelectorAll('.periodic-row').forEach(row=>{
+    const freq=row.querySelector('.p-freq').value;
+    const amt=parseFloat(row.querySelector('.p-amt').value)||0;
+    const yrs=[...row.querySelectorAll('.p-yr:checked')].map(cb=>parseInt(cb.value));
+    let pv=0;
+    yrs.forEach(yr=>{
+      if(freq==='annual'){
+        pv+=amt/Math.pow(1+ar,yr);
+      } else { // monthly: sum each month in the year
+        for(let m=(yr-1)*12+1;m<=yr*12;m++) pv+=amt/Math.pow(1+mr,m);
+      }
+    });
+    row.dataset.pv=Math.round(pv);
+    row.querySelector('.p-pv').textContent=pv>0?NT(Math.round(pv)):'-';
+    total+=pv;
+  });
+  const sumRow=document.getElementById('periodic-sum-row');
+  const hdr=document.getElementById('periodic-hdr');
+  const hasRows=document.querySelectorAll('.periodic-row').length>0;
+  sumRow.style.display=total>0?'':'none';
+  hdr.style.display=hasRows?'':'none';
+  if(total>0) document.getElementById('periodic-total').textContent=NT(Math.round(total));
+  return total;
+}
+
+let periodicCount=0;
+function addPeriodicRow(){
+  periodicCount++;
+  const anchor=document.getElementById('periodic-anchor');
+  const tr=document.createElement('tr');
+  tr.className='item periodic-row';
+  tr.style.background='#f5f9ff';
+  tr.innerHTML=`
+    <td><input type="text" class="p-name" placeholder="項目名稱（如：平台訂閱費）" style="width:100%;font-size:12px" oninput="updCost()"/></td>
+    <td class="c"><select class="p-freq" onchange="updCost()" style="font-size:11px;width:62px;padding:2px">
+      <option value="annual">每年付</option>
+      <option value="monthly">每月付</option>
+    </select></td>
+    <td class="c" style="font-size:10px;color:#6b7280">每期NT$</td>
+    <td><input type="number" class="p-amt" value="0" min="0" step="1000" oninput="updCost()"/></td>
+    <td class="r p-pv" style="color:#1d4ed8;font-weight:600">-</td>
+    <td style="font-size:10px;white-space:nowrap;padding:2px 6px">
+      <label style="margin-right:3px">Y1<input type="checkbox" class="p-yr" value="1" checked onchange="updCost()"></label>
+      <label style="margin-right:3px">Y2<input type="checkbox" class="p-yr" value="2" checked onchange="updCost()"></label>
+      <label style="margin-right:3px">Y3<input type="checkbox" class="p-yr" value="3" checked onchange="updCost()"></label>
+      <label style="margin-right:3px">Y4<input type="checkbox" class="p-yr" value="4" checked onchange="updCost()"></label>
+      <label style="margin-right:3px">Y5<input type="checkbox" class="p-yr" value="5" checked onchange="updCost()"></label>
+      <button onclick="delPeriodicRow(this)" style="margin-left:4px;background:#dc2626;color:#fff;border:none;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:11px">✕</button>
+    </td>`;
+  anchor.parentNode.insertBefore(tr,anchor);
+  updCost();
+}
+function delPeriodicRow(btn){btn.closest('tr').remove();updCost();}
+
+function updCost(){
+  const v=id=>parseFloat(document.getElementById(id).value)||0;
+  const hw=v('hw-qty')*v('hw-price');
+  const hwm=v('hwm-qty')*v('hwm-price');  // 手動輸入：維修契約費用
+  const mbase=parseFloat(document.getElementById('maint-base').value)||0;
+  const totalRatePct=(v('mr2')+v('mr3')+v('mr4')+v('mr5'));
+  const maint=calcMaintPV();             // 自動計算：PV折現後維修實際成本
+  const sw=v('sw-qty')*v('sw-price');
+  const dev=v('dev-qty')*v('dev-price');
+  const svc=v('svc-qty')*v('svc-price');
+  const trav=v('travel');
+  const inst=v('inst-qty')*v('inst-price');
+  const mat=v('mat-qty')*v('mat-price');
+  const periodic=calcPeriodicPV();
+  const tot=hw+hwm+maint+sw+dev+svc+trav+inst+mat+periodic;
+  const totR=(v('mr2')+v('mr3')+v('mr4')+v('mr5'));
+
+  document.getElementById('hw-sub').textContent=hw>0?NT(hw):'-';
+  document.getElementById('hwm-sub').textContent=hwm>0?NT(hwm):'-';
+  document.getElementById('maint-uprice').textContent=NT(maint);
+  document.getElementById('maint-sub').textContent=NT(maint);
+  document.getElementById('sw-sub').textContent=sw>0?NT(sw):'-';
+  document.getElementById('dev-sub').textContent=dev>0?NT(dev):'-';
+  document.getElementById('svc-sub').textContent=svc>0?NT(svc):'-';
+  document.getElementById('inst-sub').textContent=inst>0?NT(inst):'-';
+  document.getElementById('mat-sub').textContent=mat>0?NT(mat):'-';
+  document.getElementById('cost-total').textContent=tot>0?NT(tot):'-';
+  document.getElementById('total-rate').textContent=totR+'%';
+  document.getElementById('maint-pv').textContent=NT(maint);
+  document.getElementById('rate-show').textContent=document.getElementById('rate').value;
+  const pill=document.getElementById('cost-pill');
+  if(tot>0){pill.style.display='inline-block';pill.textContent='成本合計：NT$ '+fmtN(tot);}
+  else pill.style.display='none';
+  return tot;
+}
+
+function switchPT(t){
+  document.getElementById('sec-eq').style.display=t==='equal'?'block':'none';
+  document.getElementById('sec-cu').style.display=t==='custom'?'block':'none';
+  document.getElementById('rb-eq').classList.toggle('active',t==='equal');
+  document.getElementById('rb-cu').classList.toggle('active',t==='custom');
+  if(t==='equal')updPrev();
+}
+function getMths(){
+  const n=parseInt(document.getElementById('periods').value)||12;
+  const fm=parseInt(document.getElementById('fm').value)||0;
+  const iv=parseInt(document.getElementById('intv').value)||1;
+  return Array.from({length:n},(_,i)=>fm+i*iv);
+}
+function updPrev(){
+  const mths=getMths();
+  const max=mths[mths.length-1]||0;
+  document.getElementById('prev-title').textContent=`📅 付款時間預覽（共${mths.length}期，最終付款於移轉後第${max}月）：`;
+  const chips=mths.slice(0,24).map(m=>`<span class="chip">第${m}月</span>`).join('');
+  document.getElementById('prev-chips').innerHTML=chips+(mths.length>24?`<span class="chip">…共${mths.length}期</span>`:'');
+}
+updPrev();updCost();
+
+let cRows=3;
+function addRow(){
+  cRows++;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="c">${cRows}</td><td><input type="number" class="cm" value="${cRows*3}" min="0"/></td><td><input type="number" class="ca" value="100000" min="0" step="1000"/></td><td><button class="del-btn" onclick="delRow(this)">✕</button></td>`;
+  document.getElementById('cu-tbody').appendChild(tr);renum();
+}
+function delRow(btn){if(document.querySelectorAll('#cu-tbody tr').length>1){btn.closest('tr').remove();renum();}}
+function renum(){document.querySelectorAll('#cu-tbody tr').forEach((tr,i)=>tr.cells[0].textContent=i+1);}
+
+function pvOf(pmts,ar){const mr=ar/12;return pmts.reduce((s,p)=>p.m===0?s+p.a:s+p.a/Math.pow(1+mr,p.m),0);}
+function pvFactor(pmts,ar){const mr=ar/12;return pmts.reduce((s,p)=>p.m===0?s+1:s+1/Math.pow(1+mr,p.m),0);}
+function amortize(pmts,ar,pv0){
+  const mr=ar/12;let bal=pv0,prevM=0;
+  return pmts.slice().sort((a,b)=>a.m-b.m).map((p,i)=>{
+    const months=p.m-prevM;
+    const int=p.m===0?0:bal*(Math.pow(1+mr,months)-1);
+    const newBal=bal+int-p.a;
+    const row={per:i+1,m:p.m,open:bal,int,pmt:p.a,close:Math.abs(newBal)<0.5?0:newBal};
+    prevM=p.m;bal=newBal;return row;
+  });
+}
+
+const MARGINS=[.10,.15,.20,.25,.30],MLABS=['10%','15%','20%','25%','30%'];
+let G=null,selIdx=2;
+
+function calc(){
+  const cost=updCost();
+  const ar=parseFloat(document.getElementById('rate').value)/100;
+  const pt=document.querySelector('input[name=pt]:checked').value;
+  const err=document.getElementById('calc-err');
+  if(!cost||cost<=0){err.textContent='請先填入成本明細（成本合計需 > 0）';return;}
+  if(isNaN(ar)||ar<0){err.textContent='請輸入有效折現率';return;}
+  err.textContent='';
+  let tmpl;
+  if(pt==='equal'){const mths=getMths();tmpl=mths.map((m,i)=>({m,a:1,per:i+1}));}
+  else{
+    const rows=[...document.querySelectorAll('#cu-tbody tr')];
+    tmpl=rows.map((tr,i)=>({m:parseFloat(tr.querySelector('.cm').value)||0,a:parseFloat(tr.querySelector('.ca').value)||0,per:i+1}));
+    if(!tmpl.length){err.textContent='請新增付款期';return;}
+  }
+  const maxM=Math.max(...tmpl.map(p=>p.m));
+  const pvF=pvFactor(tmpl,ar);
+  const scenarios=MARGINS.map((mg,idx)=>{
+    const rev=cost/(1-mg);
+    let pmts,pmtAmt;
+    if(pt==='equal'){pmtAmt=rev/pvF;pmts=tmpl.map(p=>({...p,a:pmtAmt}));}
+    else{const exPV=pvOf(tmpl,ar);const scale=exPV>0?rev/exPV:1;pmts=tmpl.map(p=>({...p,a:p.a*scale}));pmtAmt=null;}
+    const totalPmt=pmts.reduce((s,p)=>s+p.a,0);
+    const pv=pvOf(pmts,ar);const fin=totalPmt-pv;
+    const amort=amortize(pmts,ar,pv);
+    return{mg,label:MLABS[idx],cost,rev,gp:rev-cost,pmtAmt,pmts,totalPmt,pv,fin,ar,amort};
+  });
+  G={scenarios,cost,ar,pt,maxM,pvF};
+  renderAll();
+  document.getElementById('results').classList.add('on');
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderAll(){renderIFRS();renderQuote();renderAmortTabs();renderAmort(selIdx);renderSummary();}
+
+function renderIFRS(){
+  const r=G,mr=r.ar/12,practical=r.maxM<=12;
+  document.getElementById('ifrs-out').innerHTML=`
+    <div style="margin-bottom:12px">${practical
+      ?'<span class="badge-g">✓ 可採用實務方便（IFRS 15.63(a)）— 付款期間≤12個月，無需調整融資成分</span>'
+      :'<span class="badge-o">⚠ 付款期間超過12個月 — 需評估並調整重大融資成分（IFRS 15.60）</span>'}</div>
+    <div class="stats">
+      <div class="stat"><div class="lbl">成本合計（未稅）</div><div class="val">${NT(r.cost)}</div><div class="sub">各分項加總</div></div>
+      <div class="stat"><div class="lbl">最長付款期間</div><div class="val">${r.maxM} 個月</div><div class="sub">${r.maxM>12?'超過一年':'一年以內'}</div></div>
+      <div class="stat"><div class="lbl">年折現率 / 月利率</div><div class="val">${(r.ar*100).toFixed(2)}%</div><div class="sub">月 ${(mr*100).toFixed(4)}%</div></div>
+      <div class="stat"><div class="lbl">PV折現因子合計</div><div class="val">${r.pvF.toFixed(5)}</div><div class="sub">Σ [1/(1+r)^t]</div></div>
+    </div>
+    <div style="border:1px solid #dde3eb;border-radius:5px;padding:12px;margin-top:10px">
+      <div style="font-weight:bold;color:#1a3a5c;font-size:12px;margin-bottom:8px">📋 IFRS 15 融資成分判斷步驟</div>
+      <div class="ifrow"><span class="k">① 付款期間是否超過一年？</span><span class="v">${r.maxM>12?'是（'+r.maxM+'個月）':'否（'+r.maxM+'個月，一年以內）'}</span></div>
+      <div class="ifrow"><span class="k">② 可援引一年實務方便？（IFRS 15.63(a)）</span><span class="v">${practical?'✓ 是，無需調整融資成分':'✗ 否，需進一步評估'}</span></div>
+      <div class="ifrow"><span class="k">③ 折現率</span><span class="v">市場利率 ${(r.ar*100).toFixed(2)}%（IFRS 15.64）</span></div>
+      <div class="ifrow"><span class="k">④ 收入認列金額（以20%方案為例）</span><span class="v">${NT(G.scenarios[2].rev)}（現金等值售價）</span></div>
+      <div class="ifrow"><span class="k">⑤ 融資成分金額（以20%方案為例）</span><span class="v">${NT(G.scenarios[2].fin)}（有效利率法攤銷）</span></div>
+      <div class="ifrow"><span class="k">⑥ 利息收入列報</span><span class="v">單獨列報，不計入合約收入（IFRS 15.65）</span></div>
+    </div>
+    <div class="ref">IFRS 15.60–65（融資成分）｜IFRS 15.63（實務方便）｜IFRS 15.65（利息收入單獨列報）</div>`;
+}
+
+function renderQuote(){
+  const tbody=document.getElementById('qt-body');tbody.innerHTML='';
+  G.scenarios.forEach((s,i)=>{
+    const tr=document.createElement('tr');
+    if(i===selIdx)tr.classList.add('sel');
+    tr.style.cursor='pointer';tr.onclick=()=>selScen(i);
+    tr.innerHTML=`<td class="mg">${s.label}</td>
+      <td style="color:#000">${NT(s.cost)}</td>
+      <td style="font-weight:bold;color:#000">${NT(s.rev)}</td>
+      <td style="color:#1e8449;font-weight:bold">${NT(s.gp)}</td>
+      <td class="c" style="color:#000">${(s.mg*100).toFixed(0)}%</td>
+      <td style="font-weight:bold;font-size:13px;color:#1a3a5c">${s.pmtAmt?NT(s.pmtAmt)+' /期':'(依比例)'}</td>
+      <td style="color:#7d3c98">${NT(s.totalPmt)}</td>
+      <td style="color:#2471a3">${NT(s.fin)}</td>
+      <td class="c" style="color:#000">${(G.ar/12*100).toFixed(4)}%</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function selScen(idx){
+  selIdx=idx;
+  document.querySelectorAll('#qt-body tr').forEach((tr,i)=>tr.classList.toggle('sel',i===idx));
+  renderAmortTabs();renderAmort(idx);
+}
+function renderAmortTabs(){
+  document.getElementById('amort-tabs').innerHTML=MLABS.map((l,i)=>`<div class="stab ${i===selIdx?'active':''}" onclick="selScen(${i})">${l} 方案</div>`).join('');
+}
+function renderAmort(idx){
+  const s=G.scenarios[idx];
+  document.getElementById('sc-lbl').textContent=`顯示方案：${s.label} 毛利｜各期付款 ${s.pmtAmt?NT(s.pmtAmt)+'（等額）':'依比例'}｜分期總額 ${NT(s.totalPmt)}｜利息收入 ${NT(s.fin)}`;
+  const tbody=document.getElementById('amort-tbody');tbody.innerHTML='';
+  s.amort.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="c">${r.per}</td><td class="c">第${r.m}月</td><td>${NT(r.open)}</td><td style="color:#2471a3">${NT(r.int)}</td><td style="color:#1a3a5c">${NT(r.pmt)}</td><td>${NT(r.close)}</td>`;
+    tbody.appendChild(tr);
+  });
+  const totInt=s.amort.reduce((a,r)=>a+r.int,0);
+  const totPmt=s.amort.reduce((a,r)=>a+r.pmt,0);
+  document.getElementById('amort-tfoot').innerHTML=`<tr><td colspan="2" class="c">合計</td><td>—</td><td>${NT(totInt)}</td><td>${NT(totPmt)}</td><td>—</td></tr>`;
+  const dv=document.getElementById('delivDate').value||'交付日';
+  document.getElementById('jt-body').innerHTML=`
+    <tr><td class="c" rowspan="3" style="font-size:11px">${dv}<br>交付日</td><td class="dr l">應收帳款（分期）</td><td>${NT(s.totalPmt)}</td><td></td><td style="font-size:10px;color:#718096">合約名目總額</td></tr>
+    <tr><td class="cr l">　合約收入</td><td></td><td>${NT(s.rev)}</td><td style="font-size:10px;color:#718096">IFRS 15 收入—現值（${s.label}毛利）</td></tr>
+    <tr><td class="cr l">　遞延融資收入</td><td></td><td>${NT(s.fin)}</td><td style="font-size:10px;color:#718096">融資成分，依有效利率法攤銷</td></tr>
+    <tr><td class="c" style="font-size:11px">${dv}</td><td class="dr l">銷貨成本</td><td>${NT(s.cost)}</td><td></td><td style="font-size:10px;color:#718096">成本合計</td></tr>
+    <tr><td></td><td class="cr l">　存貨 / 相關資產</td><td></td><td>${NT(s.cost)}</td><td></td></tr>
+    <tr><td class="c" style="font-size:11px">每期收款日</td><td class="dr l">現金 / 銀行存款</td><td>${NT(s.pmtAmt||0)} /期</td><td></td><td style="font-size:10px;color:#718096">收取各期款項</td></tr>
+    <tr><td></td><td class="cr l">　應收帳款（分期）</td><td></td><td>${NT(s.pmtAmt||0)}</td><td></td></tr>
+    <tr><td class="c" style="font-size:11px">每期收款日</td><td class="dr l">遞延融資收入</td><td style="font-style:italic;color:#718096">依攤銷表</td><td></td><td style="font-size:10px;color:#718096">攤銷當期利息</td></tr>
+    <tr><td></td><td class="cr l">　利息收入</td><td></td><td style="font-style:italic;color:#718096">依攤銷表</td><td style="font-size:10px;color:#718096">IFRS 15.65：單獨列報</td></tr>`;
+}
+
+function renderSummary(){
+  const r=G,practical=r.maxM<=12,s=G.scenarios[2];
+  const jc1=document.getElementById('jc1').value,jc3=document.getElementById('jc3').value;
+  const needFin=!practical&&(jc1==='Y'||jc3==='Y');
+  [
+    [practical||!needFin,'重大融資成分調整',practical?'無需調整（實務方便，付款期≤12個月）':needFin?`需調整，以20%方案估算利息收入約 ${NT(s.fin)}`:'融資成分可能不重大，建議個別評估'],
+    [true,'成本區分認列','已依性質區分：硬體設備、維修加成、維修成本、軟體、人力、雜項'],
+    [true,'收入認列時點','商品控制權移轉時（交付日），以現值計'],
+    [true,'利息收入處理','依有效利率法各期攤銷，不計入合約收入（IFRS 15.65）'],
+    [true,'建議科目','應收帳款（分期）/ 合約收入 / 遞延融資收入 / 利息收入'],
+    [true,'財報揭露','附註揭露：融資成分、折現率、未到期遞延融資收入餘額'],
+  ].forEach(([ok,t,d])=>{
+    document.getElementById('sum-out').innerHTML+= `<div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px dashed #dde3eb;font-size:12px"><span style="font-size:14px;flex-shrink:0">${ok?'✅':'⚠️'}</span><div><strong style="color:#1a3a5c">${t}</strong><br><span style="color:#4a5568">${d}</span></div></div>`;
+  });
+}
+function tog(b,a){document.getElementById(b).classList.toggle('open');document.getElementById(a).classList.toggle('open');}
+function resetAll(){
+  ['hw-price','hwm-price','sw-price','travel','inst-price','mat-price','maint-base'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=0;});
+  ['dev-qty','svc-qty'].forEach(id=>{document.getElementById(id).value=0;});
+  ['hw-qty','hwm-qty','sw-qty','inst-qty','mat-qty'].forEach(id=>{document.getElementById(id).value=1;});
+  document.getElementById('rate').value='3.0';document.getElementById('periods').value='12';
+  document.getElementById('fm').value='1';document.getElementById('intv').value='1';
+  document.getElementById('results').classList.remove('on');
+  document.getElementById('sum-out').innerHTML='';
+  updCost();updPrev();
+}
+function getCostData(){
+  const v=id=>parseFloat(document.getElementById(id).value)||0;
+  const maint=calcMaintPV();
+  const mbase=parseFloat(document.getElementById('maint-base').value)||0;
+  return [
+    ['硬體設備（純硬體）',v('hw-qty'),'式',v('hw-price'),v('hw-qty')*v('hw-price')],
+    ['硬體維修加成',v('hwm-qty'),'式',v('hwm-price'),v('hwm-qty')*v('hwm-price')],
+    ['└ 維修費用負擔方式','','',document.getElementById('maint-bearing').value==='self'?'我司負擔':'轉嫁供應商',''],
+    ['└ 機器設備維修成本（自動計算）',1,'式',Math.round(maint),Math.round(maint)],
+    ['└ 維修率設定','','',`第2年:${v('mr2')}% 第3年:${v('mr3')}% 第4年:${v('mr4')}% 第5年:${v('mr5')}% 合計:${v('mr2')+v('mr3')+v('mr4')+v('mr5')}%（折現率${(v('rate')||3)}%）`,''],
+    ['軟體採購/授權費',v('sw-qty'),'式',v('sw-price'),v('sw-qty')*v('sw-price')],
+    ['開發人力（客製軟體）',v('dev-qty'),'人天',v('dev-price'),v('dev-qty')*v('dev-price')],
+    ['服務人力',v('svc-qty'),'人天',v('svc-price'),v('svc-qty')*v('svc-price')],
+    ['出差費用','','','',v('travel')],
+    ['安裝施工費用',v('inst-qty'),'式',v('inst-price'),v('inst-qty')*v('inst-price')],
+    ['施工耗材費用',v('mat-qty'),'式',v('mat-price'),v('mat-qty')*v('mat-price')],
+    // 逐期成本行
+    ...[...document.querySelectorAll('.periodic-row')].map(row=>{
+      const name=row.querySelector('.p-name').value||'逐期成本';
+      const freq=row.querySelector('.p-freq').value==='annual'?'每年付':'每月付';
+      const amt=parseFloat(row.querySelector('.p-amt').value)||0;
+      const yrs=[...row.querySelectorAll('.p-yr:checked')].map(cb=>'Y'+cb.value).join('/');
+      const pv=parseFloat(row.dataset.pv)||0;
+      return [name+'（逐期/PV折現）',freq,yrs,Math.round(amt),Math.round(pv)];
+    }),
+    ['成本合計（未稅）','','','',Math.round(updCost())],
+  ];
+}
+function expXlsx(){
+  if(!G){alert('請先點擊「立即計算報價」');return;}
+  const wb=XLSX.utils.book_new();
+  const pn=document.getElementById('projName').value||'專案';
+  const r=G;
+  const s1=[
+    ['IFRS 15/9 分期付款銷貨合規底稿 — 報價試算','','','','','','',''],
+    ['商品/專案名稱',pn,'','合約日期',document.getElementById('contDate').value,'','交付日',document.getElementById('delivDate').value],
+    ['年折現率',(r.ar*100).toFixed(2)+'%','','付款方式',r.pt==='equal'?'等額分期':'自訂各期','','最長付款期間',r.maxM+'個月'],
+    ['','','','','','','',''],
+    ['=== 成本明細（未稅）===','','','','','','',''],
+    ['成本項目','數量','單位','單價','小計（未稅）','','',''],
+    ...getCostData().map(row=>[...row,'','','']),
+    ['','','','','','','',''],
+    ['=== IFRS 15 判斷 ===','','','','','','',''],
+    ['付款期間超過12月',r.maxM>12?'是':'否','','適用實務方便(IFRS 15.63(a))',r.maxM<=12?'是':'否','','',''],
+    ['','','','','','','',''],
+    ['=== 毛利報價試算表 ===','','','','','','',''],
+    ['毛利率','商品成本(NT$)','現金售價/IFRS收入(NT$)','毛利額(NT$)','各期分期金額(NT$)','分期付款總額(NT$)','利息收入(NT$)','月利率'],
+    ...r.scenarios.map(s=>[s.label,Math.round(s.cost),Math.round(s.rev),Math.round(s.gp),s.pmtAmt?Math.round(s.pmtAmt):'依比例',Math.round(s.totalPmt),Math.round(s.fin),(r.ar/12*100).toFixed(4)+'%']),
+    ['','','','','','','',''],
+    ['重要說明：收入認列以現值（現金售價）為準；利息收入應與合約收入分開列報（IFRS 15.65）','','','','','','',''],
+  ];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s1),'合規底稿報價試算');
+  r.scenarios.forEach(s=>{
+    const rows=[
+      [`${s.label} 毛利方案 — 利息收入攤銷表（有效利率法）`,'','','','',''],
+      ['商品成本',Math.round(s.cost),'現金售價',Math.round(s.rev),'各期付款',s.pmtAmt?Math.round(s.pmtAmt):'依比例'],
+      ['分期總額',Math.round(s.totalPmt),'毛利',Math.round(s.gp),'利息收入合計',Math.round(s.fin)],
+      ['','','','','',''],
+      ['期別','付款月份','期初應收帳款(NT$)','利息收入(NT$)','收取款項(NT$)','期末應收帳款(NT$)'],
+      ...s.amort.map(row=>[row.per,`第${row.m}月`,Math.round(row.open),Math.round(row.int),Math.round(row.pmt),Math.round(row.close)]),
+      ['合計','','-',Math.round(s.amort.reduce((a,r)=>a+r.int,0)),Math.round(s.amort.reduce((a,r)=>a+r.pmt,0)),'-'],
+    ];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),`${s.label}攤銷表`);
+  });
+  XLSX.writeFile(wb,`${pn}_IFRS15分期報價試算.xlsx`);
+}
+const td=new Date().toISOString().split('T')[0];
+document.getElementById('contDate').value=td;
+document.getElementById('delivDate').value=td;
+</script>
+</body>
+</html>
